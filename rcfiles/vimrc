@@ -1,0 +1,149 @@
+" Vundle is very particular about its initialization
+set nocompatible
+filetype off
+set rtp+=~/.vim/bundle/Vundle.vim
+
+if filereadable(expand('~/.at_google'))
+  let g:google_ft_bzl = 1
+  source /usr/share/vim/google/google.vim
+  Glug g4
+  Glug youcompleteme-google
+  Glug ultisnips-google
+  Glug relatedfiles plugin[mappings]
+  Glug grok
+  Glug codefmt
+  Glug codefmt-google
+  autocmd FileType bzl AutoFormatBuffer buildifier
+endif
+
+call vundle#begin()
+Plugin 'gmarik/Vundle.vim'
+if !filereadable(expand('~/.at_google'))
+  Plugin 'google/maktaba'
+  Plugin 'google/glaive'
+  Plugin 'google/vim-codefmt'
+  Plugin 'Valloric/YouCompleteMe'
+endif
+
+Plugin 'google/vim-syncopate'
+Plugin 'tpope/vim-repeat'
+Plugin 'tpope/vim-sensible'
+Plugin 'tpope/vim-abolish'
+Plugin 'tpope/vim-commentary'
+Plugin 'tpope/vim-unimpaired'
+Plugin 'tpope/vim-scriptease'
+Plugin 'AndrewRadev/splitjoin.vim'
+Plugin 'SirVer/ultisnips'
+Plugin 'akesling/ondemandhighlight'
+Plugin 'jlanzarotta/bufexplorer'
+Plugin 'nacitar/terminalkeys.vim'
+Plugin 'othree/eregex.vim'
+Plugin 'dleonard0/pony-vim-syntax'
+Plugin 'paulhybryant/file-line'
+Plugin 'luochen1990/rainbow'
+Plugin 'jaxbot/semantic-highlight.vim'
+let g:rainbow_active = 1
+
+call vundle#end()
+" Vundle is done
+
+filetype plugin indent on "Must happen after Vundle+Glug stuff
+
+" Configure vim-commentary to use // instead /* */
+autocmd FileType cpp set commentstring=//\ %s
+autocmd FileType pony set commentstring=//\ %s
+
+inoremap kj <Esc> " make the kj bigram hit escape
+let mapleader = ","
+
+let g:ycm_autoclose_preview_window_after_insertion = 1
+let g:ycm_enable_diagnostic_signs = 0
+let g:ycm_complete_in_comments = 1
+let g:ycm_collect_identifiers_from_comments_and_strings = 1
+" let g:ycm_extra_conf_globlist=['~/dev/icfp15/*']
+nnoremap <leader>jd :YcmCompleter GoToImprecise<CR>
+nnoremap <leader>w :w<CR>
+cnoremap \<Enter> <Enter>
+
+let g:UltiSnipsExpandTrigger = "<c-j>"
+let g:UltiSnipsJumpForwardTrigger = "<c-j>"
+let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
+
+
+highlight Folded     term=standout cterm=none ctermfg=7 ctermbg=4 guifg=DarkGrey guibg=#000050
+highlight FoldColumn term=standout cterm=none ctermfg=8 ctermbg=4 guifg=White    guibg=#000070
+
+" These are good for dark background with xterm-256color:
+highlight DiffAdd    ctermbg=22  guibg=#005f00
+highlight DiffDelete ctermbg=52  guibg=#5f0000
+highlight DiffChange ctermbg=20  guibg=#0000df
+highlight DiffText   ctermbg=238 guibg=#444444
+
+set number
+
+set cmdheight=2
+set shortmess+=a "Set a bunch of default short messages
+set shortmess+=A "Suppress the message when editing a file with a SWAP file
+hi StatusLine ctermfg=Cyan
+
+set modelines=0
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
+set expandtab
+
+set formatoptions+=j "remove comment leader when joining lines
+set nobackup "do not keep a back up file
+set undofile "store undo across sessions
+
+nnoremap <CR> :noh<CR><CR>
+set ignorecase
+set smartcase
+set showmatch
+set hlsearch
+
+set scrolloff=5
+
+" map F1 to Escape since that is probably what I was aiming for
+noremap <F1> <ESC>
+noremap! <F1> <ESC>
+
+" save a few keystrokes for common operations
+"nnoremap ; :
+"command WQ wq
+"command Wq wq
+"command W w
+"command Q q
+
+" Enable mouse interaction if possible
+if has("mouse")
+  set mouse=a
+endif
+
+" Some special filetypes that have weird names
+augroup filetype
+  autocmd!
+  autocmd BufRead,BufNewFile SCons*      set ft=python
+  autocmd BufRead,BufNewFile *-rc        set ft=sh
+augroup END
+
+set showcmd  " Show (partial) command in status line.
+set wildmode=longest,list
+colorscheme koehler
+
+"this make vim yank/put to the default clipboard not its private one
+set clipboard=unnamed
+
+" Make 'U' redo
+nnoremap U <C-r>
+
+" Paste mode persists by default.  I don't recall ever *wanting* this to happen,
+" but I *do* sometimes get burned by this.  The following autocommand prevents
+" this from happening (wrapped in an augroup in case .vimrc gets reloaded).
+augroup paste
+  autocmd!
+  autocmd InsertLeave * set nopaste
+augroup END
+
+set encoding=utf-8  " The encoding displayed.
+set fileencoding=utf-8  " The encoding written to file.

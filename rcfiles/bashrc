@@ -1,0 +1,282 @@
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=1000
+HISTFILESIZE=2000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# custom executable paths
+export PATH=$PATH:~/Documents/grok/bin
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# Default arguments for less: show line numbers, case-insensitive searches
+alias less="less -R -N -I"
+
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+case "$TERM" in
+    xterm-color) color_prompt=yes;;
+esac
+
+# enable programmable completion features
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+      . /etc/bash_completion
+fi
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+	color_prompt=yes
+    else
+	color_prompt=
+    fi
+fi
+
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
+
+# enable color support of ls and also add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+alias pa='prodaccess'
+export EXPERIMENTAL="experimental/users/cohenjon"
+export ASCL="experimental/ascl"
+
+# Testing stuff
+function testalltheconfigs {
+blaze test $@ -c opt
+blaze test $@ --config asan
+blaze test $@ --config tsan
+blaze test $@
+}
+
+function tap_train {
+  g4 sync
+  tap_presubmit -p all --train -c $1 --detach
+}
+
+function tap_notrain {
+  g4 sync
+  tap_presubmit -p all --notrain --detach -c $1
+}
+
+function gct_train {
+  g4 sync
+  /google/data/ro/users/yi/yileiyang/tools/gct -c $1
+}
+
+function gct_notrain {
+  g4 sync
+  /google/data/ro/users/yi/yileiyang/tools/gct -c $1 --notrain --try=3
+}
+
+# Add an "alert" alias for long running commands.  Use like so:
+#   sleep 10; alert
+alias alert='notify-send --urgency=critical -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+
+# enable programmable completion features (you don't need to enable
+# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
+# sources /etc/bash.bashrc).
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+[ -r /usr/local/google/home/cohenjon/.byobu/prompt ] && . /usr/local/google/home/cohenjon/.byobu/prompt   #byobu-prompt#
+
+
+#Add an alias to check what processes are using a port
+alias checkport="netstat -tulpn | grep"
+
+#port checks
+serverports() {
+  ps -aF | grep $1 | grep -o 'port=[0-9]\{1,\}' | cut -d = -f 2 | sort
+}
+
+
+alias rebaser="/google/data/ro/projects/devtools/rebaser/rebaser"
+alias iblaze="/google/data/ro/teams/iblaze/iblaze"
+
+
+#C++ stuff
+iwyu() {
+  /google/src/head/depot/google3/devtools/maintenance/include_what_you_use/iwyu.py build $1 --checkout_command='g4 edit'
+}
+
+checkdeps() {
+  blaze analyze --static_analysis=checkdeps $@
+}
+
+# Janitor stuff
+
+alias @dbg="/google/data/ro/teams/ads-test-debugger/@dbg"
+alias buildfix='/google/data/ro/teams/ads-integrity/buildfix'
+
+alias grokesque="blaze run //privacy/codequality/padawan:grokesque"
+alias grok="/google/data/ro/teams/Grok/bin/grok"
+
+alias unstable_clang_tidy="CLANG_TOOLS_TRACK=llvm_unstable clang_tidy"
+
+bb () {
+  clear
+  echo $@
+  blaze build $@
+  notify-send -u critical "$@ build done"
+}
+
+br () {
+  clear 
+  echo $@
+  blaze run $@
+  notify-send -u critical "$@ run done"
+}
+
+bigtable() {
+  bt $@
+}
+
+bt () {
+  clear
+  echo $@
+  blaze test $@
+  notify-send -u critical "$@ test done"
+}
+
+export -f bb
+export -f br
+export -f bt
+
+fs () {
+  g4d $1
+  g4 sync
+  g4 fix
+}
+
+absl_runtime_files () {
+grep "runtime_release(" devtools/absl/build_test/BUILD | cut -d\" -f2 | cut -d/ -f3- | sed "s/:/\//"
+}
+
+add_base () {
+  g4d $1
+  build_cleaner --only_add --dep_restrictions="//base:base"
+  g4 reopen
+  notify-send -u critical "add_base $1 done"
+}
+
+revert_rosie_cls () {
+ls /google/src/cloud/cohenjon | grep -e "^rosie$1" | xargs -P 200 -n 1 g4 citc -d -f
+}
+
+find_root_causes () {
+  blaze run //testing/metricstore/contrib/triage:find_root_causes -- --tap_id=$1 --html \
+    | perl -pe 's|^.*?href="(.*?)">.*?$|\1|'
+}
+
+#usage: all_children <cl_number> | some pipeline command, often starting with
+# xargs g4 whatsout -c
+all_children() {
+  clsearch "MASTER_CL=${1} is:pending" | sed 's#http://cl/\([0-9]*\).*#\1#'
+}
+
+cancel_all_borg_jobs () {
+  borg --borg=lg findjobs --name_re='.*' --user_re='cohenjon' \
+    | grep "\bname:" | cut -d ' ' -f 4 | sed 's/"//g' \
+    | xargs borg --borg=lg --borguser=cohenjon canceljob
+}
+
+open_urls () {
+  while read url
+  do
+    google-chrome $url &
+  done
+}
+
+rotate_screen () {
+  xrandr --output DP-2 --rotate left
+}
+
+true_head () {
+  g4 client -m none
+}
+
+versioned_head () {
+  g4 client -m components
+}
+
+er () {
+  /google/data/ro/users/ho/hooper/er "${@}"
+}
+
+# Release Manager tools
+alias copybara='/google/data/ro/teams/copybara/copybara'
+alias push_to_master='copybara migrate piper://depot/google3/third_party/absl/copy.bara.sky push_to_master'
+alias push_to_github='copybara migrate piper://depot/google3/third_party/absl/github.bara.sky publish_to_github'
+GITHUB_TOKEN="987e8364fe2355e350172864330a694a31d99377"
+
+# Set the Hi status to be displayed as part of the prompt. #!>>HI<<!#
+PS1="\[\${__hi_prompt_color}\]\${__hi_prompt_text}\[${__hi_NOCOLOR}\]${PS1}" #!>>HI<<!#
+# Set the default values for the text of the hi prompt. Change these if you like. #!>>HI<<!#
+__hi_on_prompt="[hi on] " #!>>HI<<!#
+__hi_off_prompt="[hi off]" #!>>HI<<!#
+
